@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FSL frozen rule packet",
+  "type": "object",
+  "required": [
+    "rules",
+    "contract",
+    "execution_policy",
+    "water_scale",
+    "roster_hash"
+  ],
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "direction",
+          "conditions",
+          "priority",
+          "contract",
+          "content_hash"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "direction": {
+            "enum": [
+              "PRE_GIVE",
+              "PRE_RECEIVE",
+              "PRE_PK_HOME",
+              "PRE_PK_AWAY",
+              "PRE_OVER",
+              "PRE_UNDER",
+              "PRE_HOME",
+              "PRE_AWAY",
+              "LIVE_GIVE",
+              "LIVE_RECEIVE",
+              "LIVE_PK_HOME",
+              "LIVE_PK_AWAY",
+              "LIVE_OVER",
+              "LIVE_UNDER",
+              "LIVE_HOME",
+              "LIVE_AWAY"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/condition"
+            }
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "live_enabled": {
+            "const": false
+          },
+          "second_slot_enabled": {
+            "const": false
+          },
+          "contract": {
+            "type": "object"
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "contract": {
+      "type": "object"
+    },
+    "execution_policy": {
+      "type": "object",
+      "required": [
+        "priority",
+        "match_cap",
+        "stale_minutes",
+        "live_enabled",
+        "second_slot_enabled"
+      ],
+      "properties": {
+        "priority": {
+          "const": "frozen_rule_priority"
+        },
+        "match_cap": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "stale_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "live_enabled": {
+          "const": false
+        },
+        "second_slot_enabled": {
+          "const": false
+        }
+      }
+    },
+    "water_scale": {
+      "enum": [
+        100,
+        1000,
+        10000,
+        100000,
+        1000000
+      ]
+    },
+    "roster_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "required": [
+        "feature",
+        "op",
+        "value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "feature": {
+          "type": "string",
+          "minLength": 1
+        },
+        "op": {
+          "enum": [
+            "eq",
+            "le",
+            "ge",
+            "range"
+          ]
+        },
+        "value": {
+          "type": "integer"
+        },
+        "upper": {
+          "type": "integer"
+        },
+        "label": {
+          "type": "string"
+        },
+        "span": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "min_line_step": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_water_step": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pulse": {
+          "type": "boolean"
+        },
+        "sequence": {
+          "enum": [
+            "contiguous",
+            "subsequence"
+          ]
+        },
+        "event_model": {
+          "enum": [
+            "projected",
+            "composite"
+          ]
+        },
+        "pattern": {
+          "type": "array",
+          "items": {
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              13,
+              14,
+              23,
+              24
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 3
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "range"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "upper"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "$comment": "Schema checks shape. Also use lab.features.validate_rules and lab.contracts.resolve_contract to check allowed feature names, operator/path combinations, range ordering, unique strategy IDs, units, hashes and immutable semantic binding. Never eval strings."
+}
